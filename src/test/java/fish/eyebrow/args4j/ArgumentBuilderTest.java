@@ -1,16 +1,17 @@
 package fish.eyebrow.args4j;
 
 import fish.eyebrow.args4j.annotations.Flag;
+import fish.eyebrow.args4j.exceptions.UnsupportedFlagTypeException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ArgumentBuilderTest {
     @AfterEach
     void tearDown() {
         SingletonClass.reset();
+        UnsupportedFlagTypeSingletonClass.reset();
     }
 
     @Test
@@ -27,6 +28,14 @@ class ArgumentBuilderTest {
         assertEquals(1, SingletonClass.flagInt);
     }
 
+    @Test
+    void annotatedFlagUnsupported() {
+        assertThrows(
+                UnsupportedFlagTypeException.class,
+                () -> ArgumentBuilder.scan(UnsupportedFlagTypeSingletonClass.class)
+        );
+    }
+
     static class SingletonClass {
         @Flag
         private static boolean flag;
@@ -35,11 +44,20 @@ class ArgumentBuilderTest {
 
         private SingletonClass() {}
 
-        // Due to this being static there needs to be a nice way to ensure
-        // tests are not interfering with each other.
         private static void reset() {
             flag = false;
             flagInt = 0;
+        }
+    }
+
+    static class UnsupportedFlagTypeSingletonClass {
+        @Flag
+        private static String badFlag;
+
+        private UnsupportedFlagTypeSingletonClass() {}
+
+        private static void reset() {
+            badFlag = null;
         }
     }
 }

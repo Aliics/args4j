@@ -1,6 +1,7 @@
 package fish.eyebrow.args4j;
 
 import fish.eyebrow.args4j.annotations.Flag;
+import fish.eyebrow.args4j.exceptions.UnsupportedFlagTypeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,6 +23,10 @@ public class ArgumentBuilder {
                             field.setBoolean(clazz, true);
                         } else if (field.getType().isAssignableFrom(int.class)) {
                             field.setInt(clazz, 1);
+                        } else {
+                            throw new UnsupportedFlagTypeException(
+                                    field.getType().getSimpleName() + "is not a supported flag type"
+                            );
                         }
                     } catch (final IllegalAccessException e) {
                         logger.error("Exception occurred when setting flag: {}", field.getName());
