@@ -16,23 +16,31 @@ class ArgumentBuilderTest {
 
     @Test
     void annotatedFlag() {
-        ArgumentBuilder.scan(SingletonClass.class);
+        final var args = new String[]{"--flag"};
+
+        ArgumentBuilder.scan(SingletonClass.class, args);
 
         assertTrue(SingletonClass.flag);
+        assertEquals(0, SingletonClass.flagInt);
     }
 
     @Test
     void annotatedFlagInt() {
-        ArgumentBuilder.scan(SingletonClass.class);
+        final var args = new String[]{"--flagInt"};
 
+        ArgumentBuilder.scan(SingletonClass.class, args);
+
+        assertFalse(SingletonClass.flag);
         assertEquals(1, SingletonClass.flagInt);
     }
 
     @Test
     void annotatedFlagUnsupported() {
+        final var args = new String[]{"--badFlag"};
+
         assertThrows(
                 UnsupportedFlagTypeException.class,
-                () -> ArgumentBuilder.scan(UnsupportedFlagTypeSingletonClass.class)
+                () -> ArgumentBuilder.scan(UnsupportedFlagTypeSingletonClass.class, args)
         );
     }
 

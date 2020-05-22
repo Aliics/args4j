@@ -13,8 +13,11 @@ public class ArgumentBuilder {
 
     private ArgumentBuilder() { }
 
-    public static <T> void scan(final Class<T> clazz) {
+    public static <T> void scan(final Class<T> clazz, final String... args) {
+        final var argsList = Arrays.asList(args);
+
         Arrays.stream(clazz.getDeclaredFields())
+                .filter(field -> argsList.contains("--" + field.getName()))
                 .filter(field -> field.isAnnotationPresent(Flag.class))
                 .filter(AccessibleObject::trySetAccessible)
                 .forEach(field -> {
