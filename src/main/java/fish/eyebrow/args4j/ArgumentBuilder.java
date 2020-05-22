@@ -17,9 +17,16 @@ public class ArgumentBuilder {
         final var argsList = Arrays.asList(args);
 
         Arrays.stream(clazz.getDeclaredFields())
-                .filter(field -> argsList.contains("--" + field.getName()))
                 .filter(field -> field.isAnnotationPresent(Flag.class))
                 .filter(AccessibleObject::trySetAccessible)
+                .filter(field -> {
+                    final var flagAnnotation = field.getAnnotation(Flag.class);
+                    return argsList.contains(Constants.LONG_ARG_PREFIX + field.getName()) ||
+                           (
+                                   !flagAnnotation.shortName().equals(Constants.SHORT_NAME_DEFAULT) &&
+                                   argsList.contains(Constants.SHORT_ARG_PREFIX + flagAnnotation.shortName())
+                           );
+                })
                 .forEach(field -> {
                     try {
                         if (field.getType().isAssignableFrom(boolean.class)) {

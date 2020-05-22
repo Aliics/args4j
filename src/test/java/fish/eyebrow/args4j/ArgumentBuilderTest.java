@@ -22,6 +22,7 @@ class ArgumentBuilderTest {
 
         assertTrue(SingletonClass.flag);
         assertEquals(0, SingletonClass.flagInt);
+        assertFalse(SingletonClass.flagShortName);
     }
 
     @Test
@@ -32,6 +33,7 @@ class ArgumentBuilderTest {
 
         assertFalse(SingletonClass.flag);
         assertEquals(1, SingletonClass.flagInt);
+        assertFalse(SingletonClass.flagShortName);
     }
 
     @Test
@@ -44,17 +46,31 @@ class ArgumentBuilderTest {
         );
     }
 
+    @Test
+    void shortFlagNames() {
+        final var args = new String[]{"-s"};
+
+        ArgumentBuilder.scan(SingletonClass.class, args);
+
+        assertFalse(SingletonClass.flag);
+        assertEquals(0, SingletonClass.flagInt);
+        assertTrue(SingletonClass.flagShortName);
+    }
+
     static class SingletonClass {
         @Flag
         private static boolean flag;
         @Flag
         private static int flagInt;
+        @Flag(shortName = "s")
+        private static boolean flagShortName;
 
         private SingletonClass() {}
 
         private static void reset() {
             flag = false;
             flagInt = 0;
+            flagShortName = false;
         }
     }
 
