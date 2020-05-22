@@ -1,6 +1,7 @@
 package fish.eyebrow.args4j;
 
 import fish.eyebrow.args4j.annotations.Flag;
+import fish.eyebrow.args4j.annotations.Option;
 import fish.eyebrow.args4j.exceptions.UnsupportedFlagTypeException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -23,6 +24,7 @@ class ArgumentBuilderTest {
         assertTrue(SingletonClass.flag);
         assertEquals(0, SingletonClass.flagInt);
         assertFalse(SingletonClass.flagShortName);
+        assertNull(SingletonClass.option);
     }
 
     @Test
@@ -34,6 +36,7 @@ class ArgumentBuilderTest {
         assertFalse(SingletonClass.flag);
         assertEquals(1, SingletonClass.flagInt);
         assertFalse(SingletonClass.flagShortName);
+        assertNull(SingletonClass.option);
     }
 
     @Test
@@ -44,6 +47,10 @@ class ArgumentBuilderTest {
                 UnsupportedFlagTypeException.class,
                 () -> ArgumentBuilder.scan(UnsupportedFlagTypeSingletonClass.class, args)
         );
+        assertFalse(SingletonClass.flag);
+        assertEquals(0, SingletonClass.flagInt);
+        assertFalse(SingletonClass.flagShortName);
+        assertNull(SingletonClass.option);
     }
 
     @Test
@@ -55,6 +62,19 @@ class ArgumentBuilderTest {
         assertFalse(SingletonClass.flag);
         assertEquals(0, SingletonClass.flagInt);
         assertTrue(SingletonClass.flagShortName);
+        assertNull(SingletonClass.option);
+    }
+
+    @Test
+    void givenOption() {
+        final var args = new String[]{"--option", "awesome"};
+
+        ArgumentBuilder.scan(SingletonClass.class, args);
+
+        assertFalse(SingletonClass.flag);
+        assertEquals(0, SingletonClass.flagInt);
+        assertFalse(SingletonClass.flagShortName);
+        assertEquals("awesome", SingletonClass.option);
     }
 
     static class SingletonClass {
@@ -64,6 +84,8 @@ class ArgumentBuilderTest {
         private static int flagInt;
         @Flag(shortName = "s")
         private static boolean flagShortName;
+        @Option
+        private static String option;
 
         private SingletonClass() {}
 
@@ -71,6 +93,7 @@ class ArgumentBuilderTest {
             flag = false;
             flagInt = 0;
             flagShortName = false;
+            option = null;
         }
     }
 
