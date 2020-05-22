@@ -2,6 +2,7 @@ package fish.eyebrow.args4j;
 
 import fish.eyebrow.args4j.annotations.Flag;
 import fish.eyebrow.args4j.annotations.Option;
+import fish.eyebrow.args4j.exceptions.MultiAnnotatedFieldException;
 import fish.eyebrow.args4j.exceptions.UnsupportedFlagTypeException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,11 @@ public class ArgumentBuilder {
 
         Arrays.stream(clazz.getDeclaredFields())
                 .filter(AccessibleObject::trySetAccessible)
-                .filter(field -> !(field.isAnnotationPresent(Flag.class) && field.isAnnotationPresent(Option.class)))
+                .peek(field -> {
+                    if (field.isAnnotationPresent(Flag.class) && field.isAnnotationPresent(Option.class)) {
+                        throw new MultiAnnotatedFieldException(field + " has too many annotations");
+                    }
+                })
                 .forEach(field -> {
                     if (argsContainFlag(argsList, field)) {
                         applyFlagMutation(clazz, field);
@@ -37,18 +42,26 @@ public class ArgumentBuilder {
     }
 
     private static boolean argsContainFlag(final List<String> argsList, final Field field) {
-        final var flagAnnotation = field.getAnnotation(Flag.class);
-        return Objects.nonNull(flagAnnotation) && (
+        final var annotation = field.getAnnotation(Flag.class);
+        return Objects.nonNull(annotation) && (
                 argsList.contains(Constants.LONG_ARG_PREFIX + field.getName()) || (
-                        !flagAnnotation.shortName().equals(Constants.SHORT_NAME_DEFAULT) &&
-                        argsList.contains(Constants.SHORT_ARG_PREFIX + flagAnnotation.shortName())
+                        !annotation.shortName().equals(Constants.SHORT_NAME_DEFAULT) &&
+                        argsList.contains(Constants.SHORT_ARG_PREFIX + annotation.shortName())
                 )
         );
     }
 
     private static int indexOfOptionValue(final List<String> argsList, final Field field) {
         final var found = argsList.indexOf(Constants.LONG_ARG_PREFIX + field.getName());
-        return found < argsList.size() ? found + 1 : -1;
+        if (found > -1) {
+            return found < argsList.size() ? found + 1 : -1;
+        } else {
+            final var annotation = field.getAnnotation(Option.class);
+            final var shortName = annotation.shortName();
+            final var shortNameFound = argsList.indexOf(Constants.SHORT_ARG_PREFIX + shortName);
+
+            return shortNameFound > -1 && !shortName.equals(Constants.SHORT_NAME_DEFAULT) ? shortNameFound + 1 : -1;
+        }
     }
 
     private static <T> void applyFlagMutation(final Class<T> clazz, final Field field) {
