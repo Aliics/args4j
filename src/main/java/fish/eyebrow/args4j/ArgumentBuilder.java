@@ -14,20 +14,42 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+/**
+ * Uses java reflection to build your annotated fields up with the arguments
+ * which you pass in.
+ */
 public class ArgumentBuilder {
     private static final Logger logger = LoggerFactory.getLogger(ArgumentBuilder.class);
     private final HelpTextBuilder helpTextBuilder;
     private Consumer<String> outputMethod;
 
+    /**
+     * Default constructor for {@link ArgumentBuilder}. This uses stdout for
+     * the output method and the default {@link HelpTextBuilder}.
+     */
     public ArgumentBuilder() {
         helpTextBuilder = HelpTextBuilder.ofDefaults();
         outputMethod = System.out::println;
     }
 
+    /**
+     * Use {@link Builder} to configure a custom {@link ArgumentBuilder}.
+     *
+     * @return {@link Builder}
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * Scan the class to be built up using the arguments which are passed in.
+     * {@link Flag} and {@link Option} can be used to annotated which fields
+     * to populate.
+     *
+     * @param clazz {@link Class} to be scanned
+     * @param args  Varargs (or array) of arguments
+     * @param <T>   clazz's type
+     */
     public <T> void scan(final Class<T> clazz, final String... args) {
         final var argsList = Arrays.asList(args);
         helpTextBuilder.buildInitialHelpText();
@@ -102,6 +124,9 @@ public class ArgumentBuilder {
         }
     }
 
+    /**
+     * Builder for {@link ArgumentBuilder}. Primarily for some runtime customisation.
+     */
     public static class Builder {
         private Consumer<String> outputMethod;
 
