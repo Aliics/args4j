@@ -59,7 +59,7 @@ public class ArgumentBuilder {
         final var annotation = field.getAnnotation(Flag.class);
         return Objects.nonNull(annotation) && (
                 argsList.contains(Constants.LONG_ARG_PREFIX + field.getName()) || (
-                        !annotation.shortName().equals(Constants.SHORT_NAME_DEFAULT) &&
+                        annotation.shortName() != Constants.SHORT_NAME_DEFAULT &&
                         argsList.contains(Constants.SHORT_ARG_PREFIX + annotation.shortName())
                 )
         );
@@ -74,7 +74,7 @@ public class ArgumentBuilder {
             final var shortName = annotation.shortName();
             final var shortNameFound = argsList.indexOf(Constants.SHORT_ARG_PREFIX + shortName);
 
-            return shortNameFound > -1 && !shortName.equals(Constants.SHORT_NAME_DEFAULT) ? shortNameFound + 1 : -1;
+            return shortNameFound > -1 && shortName != Constants.SHORT_NAME_DEFAULT ? shortNameFound + 1 : -1;
         }
     }
 

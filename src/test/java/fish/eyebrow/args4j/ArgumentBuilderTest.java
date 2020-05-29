@@ -8,8 +8,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class ArgumentBuilderTest {
@@ -123,7 +121,7 @@ class ArgumentBuilderTest {
     }
 
     @Test
-    void generatedHelp() throws IOException {
+    void generatedHelp() {
         final var outputBuilder = new StringBuilder();
         final var args = new String[]{"--help"};
         argumentBuilder = ArgumentBuilder.builder()
@@ -140,11 +138,11 @@ class ArgumentBuilderTest {
         private static boolean flag;
         @Flag
         private static int flagInt;
-        @Flag(shortName = "s")
+        @Flag(shortName = 's')
         private static boolean flagShortName;
         @Option
         private static String option;
-        @Option(shortName = "o")
+        @Option(shortName = 'o')
         private static String optionShortName;
 
         private SingletonClass() {}

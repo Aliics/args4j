@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Option {
-    String shortName() default Constants.SHORT_NAME_DEFAULT;
+    char shortName() default Constants.SHORT_NAME_DEFAULT;
 
     String description() default Constants.DESCRIPTION_DEFAULT;
 }

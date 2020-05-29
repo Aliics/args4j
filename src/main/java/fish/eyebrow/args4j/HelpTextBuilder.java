@@ -6,6 +6,8 @@ import fish.eyebrow.args4j.annotations.Option;
 import java.lang.reflect.Field;
 import java.util.Objects;
 
+import static java.lang.String.format;
+
 public class HelpTextBuilder {
     private StringBuilder helpTextStringBuilder;
 
@@ -30,8 +32,7 @@ public class HelpTextBuilder {
                 .append(Constants.SHORT_ARG_PREFIX)
                 .append("h, ")
                 .append(Constants.LONG_ARG_PREFIX)
-                .append("help")
-                .append("\t")
+                .append(format("%-" + Constants.HELP_TEXT_DESCRIPTION_PADDING + "s", "help"))
                 .append(Constants.HELP_TEXT_DESCRIPTION)
                 .append("\n");
     }
@@ -51,17 +52,14 @@ public class HelpTextBuilder {
         return false;
     }
 
-    private void buildHelpTextForArgument(final Field field, final String s, final String description) {
-        helpTextStringBuilder.append("  ");
-        if (!s.equals("")) {
-            helpTextStringBuilder.append(Constants.SHORT_ARG_PREFIX)
-                    .append(s)
-                    .append(", ");
-        }
+    private void buildHelpTextForArgument(final Field field, final char shortName, final String description) {
+        final var shortCommand = shortName != Constants.SHORT_NAME_DEFAULT ?
+                                 Constants.SHORT_ARG_PREFIX + shortName + ", " :
+                                 "";
 
-        helpTextStringBuilder.append(Constants.LONG_ARG_PREFIX)
-                .append(field.getName())
-                .append("\t")
+        helpTextStringBuilder.append("  ").append(format("%-4s", shortCommand))
+                .append(Constants.LONG_ARG_PREFIX)
+                .append(format("%-" + Constants.HELP_TEXT_DESCRIPTION_PADDING + "s", field.getName()))
                 .append(description)
                 .append("\n");
     }
