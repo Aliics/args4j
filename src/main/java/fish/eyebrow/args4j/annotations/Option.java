@@ -11,4 +11,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Option {
     String shortName() default Constants.SHORT_NAME_DEFAULT;
+
+    String description() default Constants.DESCRIPTION_DEFAULT;
 }

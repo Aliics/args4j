@@ -12,14 +12,25 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class ArgumentBuilder {
     private static final Logger logger = LoggerFactory.getLogger(ArgumentBuilder.class);
+    private final HelpTextBuilder helpTextBuilder;
+    private Consumer<String> outputMethod;
 
-    private ArgumentBuilder() { }
+    public ArgumentBuilder() {
+        helpTextBuilder = HelpTextBuilder.ofDefaults();
+        outputMethod = System.out::println;
+    }
 
-    public static <T> void scan(final Class<T> clazz, final String... args) {
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public <T> void scan(final Class<T> clazz, final String... args) {
         final var argsList = Arrays.asList(args);
+        helpTextBuilder.buildInitialHelpText();
 
         Arrays.stream(clazz.getDeclaredFields())
                 .filter(AccessibleObject::trySetAccessible)
@@ -28,6 +39,7 @@ public class ArgumentBuilder {
                         throw new MultiAnnotatedFieldException(field + " has too many annotations");
                     }
                 })
+                .filter(helpTextBuilder::canBuildHelpText)
                 .forEach(field -> {
                     if (argsContainFlag(argsList, field)) {
                         applyFlagMutation(clazz, field);
@@ -39,9 +51,11 @@ public class ArgumentBuilder {
                         }
                     }
                 });
+
+        outputMethod.accept(helpTextBuilder.buildHelpText());
     }
 
-    private static boolean argsContainFlag(final List<String> argsList, final Field field) {
+    private boolean argsContainFlag(final List<String> argsList, final Field field) {
         final var annotation = field.getAnnotation(Flag.class);
         return Objects.nonNull(annotation) && (
                 argsList.contains(Constants.LONG_ARG_PREFIX + field.getName()) || (
@@ -51,7 +65,7 @@ public class ArgumentBuilder {
         );
     }
 
-    private static int indexOfOptionValue(final List<String> argsList, final Field field) {
+    private int indexOfOptionValue(final List<String> argsList, final Field field) {
         final var found = argsList.indexOf(Constants.LONG_ARG_PREFIX + field.getName());
         if (found > -1) {
             return found < argsList.size() ? found + 1 : -1;
@@ -64,7 +78,7 @@ public class ArgumentBuilder {
         }
     }
 
-    private static <T> void applyFlagMutation(final Class<T> clazz, final Field field) {
+    private <T> void applyFlagMutation(final Class<T> clazz, final Field field) {
         try {
             if (field.getType().isAssignableFrom(boolean.class)) {
                 field.setBoolean(clazz, true);
@@ -80,11 +94,29 @@ public class ArgumentBuilder {
         }
     }
 
-    private static <T> void applyOptionMutation(final Class<T> clazz, final Field field, final String value) {
+    private <T> void applyOptionMutation(final Class<T> clazz, final Field field, final String value) {
         try {
             field.set(clazz, value);
         } catch (final IllegalAccessException e) {
             logger.error("Exception occurred when setting option: {}", field.getName());
+        }
+    }
+
+    public static class Builder {
+        private Consumer<String> outputMethod;
+
+        private Builder() {}
+
+        public Builder setOutputMethod(final Consumer<String> outputMethod) {
+            this.outputMethod = outputMethod;
+            return this;
+        }
+
+        public ArgumentBuilder build() {
+            final var argumentBuilder = new ArgumentBuilder();
+            argumentBuilder.outputMethod = outputMethod;
+
+            return argumentBuilder;
         }
     }
 }

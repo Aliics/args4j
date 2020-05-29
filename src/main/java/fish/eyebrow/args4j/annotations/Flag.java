@@ -11,4 +11,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Flag {
     String shortName() default Constants.SHORT_NAME_DEFAULT;
+
+    String description() default Constants.DESCRIPTION_DEFAULT;
 }

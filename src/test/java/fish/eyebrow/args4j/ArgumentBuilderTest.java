@@ -5,11 +5,21 @@ import fish.eyebrow.args4j.annotations.Option;
 import fish.eyebrow.args4j.exceptions.MultiAnnotatedFieldException;
 import fish.eyebrow.args4j.exceptions.UnsupportedFlagTypeException;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ArgumentBuilderTest {
+    private ArgumentBuilder argumentBuilder;
+
+    @BeforeEach
+    void setUp() {
+        argumentBuilder = new ArgumentBuilder();
+    }
+
     @AfterEach
     void tearDown() {
         SingletonClass.reset();
@@ -21,7 +31,7 @@ class ArgumentBuilderTest {
     void annotatedFlag() {
         final var args = new String[]{"--flag"};
 
-        ArgumentBuilder.scan(SingletonClass.class, args);
+        argumentBuilder.scan(SingletonClass.class, args);
 
         assertTrue(SingletonClass.flag);
         assertEquals(0, SingletonClass.flagInt);
@@ -34,7 +44,7 @@ class ArgumentBuilderTest {
     void annotatedFlagInt() {
         final var args = new String[]{"--flagInt"};
 
-        ArgumentBuilder.scan(SingletonClass.class, args);
+        argumentBuilder.scan(SingletonClass.class, args);
 
         assertFalse(SingletonClass.flag);
         assertEquals(1, SingletonClass.flagInt);
@@ -49,7 +59,7 @@ class ArgumentBuilderTest {
 
         assertThrows(
                 UnsupportedFlagTypeException.class,
-                () -> ArgumentBuilder.scan(UnsupportedFlagTypeSingletonClass.class, args)
+                () -> argumentBuilder.scan(UnsupportedFlagTypeSingletonClass.class, args)
         );
         assertFalse(SingletonClass.flag);
         assertEquals(0, SingletonClass.flagInt);
@@ -62,7 +72,7 @@ class ArgumentBuilderTest {
     void shortFlagName() {
         final var args = new String[]{"-s"};
 
-        ArgumentBuilder.scan(SingletonClass.class, args);
+        argumentBuilder.scan(SingletonClass.class, args);
 
         assertFalse(SingletonClass.flag);
         assertEquals(0, SingletonClass.flagInt);
@@ -75,7 +85,7 @@ class ArgumentBuilderTest {
     void givenOption() {
         final var args = new String[]{"--option", "awesome"};
 
-        ArgumentBuilder.scan(SingletonClass.class, args);
+        argumentBuilder.scan(SingletonClass.class, args);
 
         assertFalse(SingletonClass.flag);
         assertEquals(0, SingletonClass.flagInt);
@@ -88,7 +98,7 @@ class ArgumentBuilderTest {
     void shortOptionName() {
         final var args = new String[]{"-o", "bunny"};
 
-        ArgumentBuilder.scan(SingletonClass.class, args);
+        argumentBuilder.scan(SingletonClass.class, args);
 
         assertFalse(SingletonClass.flag);
         assertEquals(0, SingletonClass.flagInt);
@@ -103,13 +113,26 @@ class ArgumentBuilderTest {
 
         assertThrows(
                 MultiAnnotatedFieldException.class,
-                () -> ArgumentBuilder.scan(BadMultiAnnotationSingletonClass.class, args)
+                () -> argumentBuilder.scan(BadMultiAnnotationSingletonClass.class, args)
         );
         assertFalse(SingletonClass.flag);
         assertEquals(0, SingletonClass.flagInt);
         assertFalse(SingletonClass.flagShortName);
         assertNull(SingletonClass.option);
         assertNull(SingletonClass.optionShortName);
+    }
+
+    @Test
+    void generatedHelp() throws IOException {
+        final var outputBuilder = new StringBuilder();
+        final var args = new String[]{"--help"};
+        argumentBuilder = ArgumentBuilder.builder()
+                .setOutputMethod(outputBuilder::append)
+                .build();
+
+        argumentBuilder.scan(SingletonClass.class, args);
+
+        assertNotEquals("", outputBuilder.toString());
     }
 
     static class SingletonClass {
