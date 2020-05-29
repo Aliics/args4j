@@ -74,7 +74,12 @@ public class ArgumentBuilder {
                     }
                 });
 
-        outputMethod.accept(helpTextBuilder.buildHelpText());
+        if (
+                argsList.contains(Constants.LONG_ARG_PREFIX + "help") ||
+                argsList.contains(Constants.SHORT_ARG_PREFIX + "h")
+        ) {
+            outputMethod.accept(helpTextBuilder.buildHelpText());
+        }
     }
 
     private boolean argsContainFlag(final List<String> argsList, final Field field) {
